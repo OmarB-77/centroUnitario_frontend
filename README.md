@@ -42,7 +42,7 @@ npm run test:watch  # modalità watch durante lo sviluppo
 ├── index.html              # shell PWA, <script type="module">
 ├── manifest.webmanifest    # PWA installabile (display standalone, icone)
 ├── sw.js                   # service worker (network-first, CACHE_NAME da VERSION)
-├── icons/                  # (DA AGGIUNGERE) icone PWA referenziate dal manifest
+├── icons/                  # icone PWA referenziate dal manifest
 ├── css/
 │   └── styles.css          # mobile-first + media query desktop
 └── js/
@@ -63,10 +63,10 @@ Il `manifest.webmanifest` referenzia icone nella cartella `icons/` (via base pat
 - `icons/icon-512.png` — 512×512, `purpose: any`
 - `icons/icon-maskable-512.png` — 512×512, `purpose: maskable`
 
-I file immagine **non sono ancora presenti**: vanno aggiunti prima del rilascio
-per rendere la PWA pienamente installabile con icona. Finché mancano, il
-service worker ignora senza errori i download falliti dell'app shell e l'app
-resta funzionante.
+I file immagine sono presenti come **segnaposto** generati con i colori del tema
+(#0b5fa5 / accento #ffbf47). Sostituiscili con il logo definitivo mantenendo nomi
+e dimensioni. Il service worker ignora comunque senza errori eventuali download
+falliti dell'app shell, quindi l'app resta funzionante.
 
 ### Service worker e versione (R16.5 / R17)
 
@@ -108,3 +108,12 @@ assoluti hardcoded tipo `/...`.
 La propagazione del deploy e la cache della CDN possono richiedere alcuni minuti:
 un ritardo non indica un errore di build. Un hard refresh lato client aiuta a
 vedere subito l'ultima versione.
+
+### CI/CD (GitHub Actions)
+
+Il workflow `.github/workflows/deploy-pages.yml` esegue i test (Vitest) e, se
+passano, pubblica il sito su GitHub Pages ad ogni push su `main`.
+
+**Attivazione una tantum:** su GitHub → **Settings → Pages → Build and deployment
+→ Source: GitHub Actions**. Da quel momento ogni push su `main` ripubblica il
+sito. Nessun segreto necessario (la anon key è pubblica per design).

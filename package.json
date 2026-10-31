@@ -1,0 +1,15 @@
+{
+  "name": "centrounitario-frontend",
+  "version": "0.1.0",
+  "description": "Webapp PWA per la gestione del Centro Unitario e degli Armadi di Ripristino",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "fast-check": "^4.10.2",
+    "vitest": "^3.2.4"
+  }
+}

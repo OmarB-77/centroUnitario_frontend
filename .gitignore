@@ -1,0 +1,23 @@
+# Dipendenze
+node_modules/
+
+# Output di test / coverage / build
+coverage/
+.vitest/
+dist/
+
+# Log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# File di sistema / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Ambiente locale (nessun segreto va versionato)
+.env
+.env.*

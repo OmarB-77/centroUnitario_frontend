@@ -1,0 +1,401 @@
+/* =========================================================================
+   Centro Unitario — fogli di stile
+   Mobile-first (User) con adattamento desktop (Admin / Power-user).
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   Reset di base
+   ------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* INSIDIA NOTA (steering): `appearance: none` applicato globalmente rompe il
+   rendering nativo di checkbox e radio. Applichiamo l'azzeramento SOLO ai
+   controlli di tipo testo/pulsante e NON a checkbox/radio, che restano nativi. */
+input:not([type="checkbox"]):not([type="radio"]),
+button,
+select,
+textarea {
+  -webkit-appearance: none;
+  appearance: none;
+  font: inherit;
+  color: inherit;
+}
+
+/* Le checkbox e le radio mantengono esplicitamente l'aspetto nativo. */
+input[type="checkbox"],
+input[type="radio"] {
+  -webkit-appearance: auto;
+  appearance: auto;
+  width: 1.15rem;
+  height: 1.15rem;
+}
+
+img,
+svg,
+video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* -------------------------------------------------------------------------
+   Tema e tipografia (mobile-first)
+   ------------------------------------------------------------------------- */
+:root {
+  --colore-primario: #0b5fa5;
+  --colore-testo: #1a1a1a;
+  --colore-sfondo: #f5f6f8;
+  --colore-superficie: #ffffff;
+  --colore-bordo: #d4d7dd;
+  --spazio: 1rem;
+  --raggio: 0.5rem;
+}
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--colore-testo);
+  background: var(--colore-sfondo);
+  line-height: 1.5;
+  font-size: 16px;
+}
+
+/* -------------------------------------------------------------------------
+   Struttura della shell applicativa
+   ------------------------------------------------------------------------- */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.app-header {
+  background: var(--colore-primario);
+  color: #fff;
+  padding: var(--spazio);
+}
+
+.app-titolo {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.app-contenuto {
+  flex: 1 1 auto;
+  padding: var(--spazio);
+  width: 100%;
+}
+
+.app-footer {
+  padding: 0.5rem var(--spazio);
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.85rem;
+  border-top: 1px solid var(--colore-bordo);
+  background: var(--colore-superficie);
+}
+
+/* Controlli di base, pensati per il tocco su mobile. */
+button,
+.pulsante {
+  min-height: 44px;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--colore-primario);
+  border-radius: var(--raggio);
+  background: var(--colore-primario);
+  color: #fff;
+  cursor: pointer;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #ffbf47;
+  outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------------------
+   Adattamento desktop (Admin / Power-user): liste e tabelle più dense.
+   ------------------------------------------------------------------------- */
+@media (min-width: 768px) {
+  .app-contenuto {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+  }
+
+  .app-titolo {
+    font-size: 1.5rem;
+  }
+
+  body {
+    font-size: 15px;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Home filtrata per ruolo (ui/home.js) e schermate stub del router.
+   ------------------------------------------------------------------------- */
+.home-intestazione {
+  margin-bottom: var(--spazio);
+}
+
+.home-titolo {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+}
+
+.home-saluto {
+  margin: 0;
+  color: #6b7280;
+}
+
+/* Mobile-first: una colonna di tasti ampi, comodi al tocco. */
+.home-griglia {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+/* Ogni tasto è un blocco verticale: icona, titolo, descrizione. */
+.home-tasto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  min-height: 72px;
+  text-align: left;
+  background: var(--colore-superficie);
+  color: var(--colore-testo);
+  border: 1px solid var(--colore-bordo);
+}
+
+.home-tasto__icona {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.home-tasto__titolo {
+  font-weight: 600;
+}
+
+.home-tasto__descrizione {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.home-vuoto {
+  color: #6b7280;
+}
+
+.home-azioni {
+  margin-top: var(--spazio);
+}
+
+/* Il logout è un'azione secondaria: stile più sobrio, non primario. */
+.home-logout {
+  background: var(--colore-superficie);
+  color: var(--colore-primario);
+  border: 1px solid var(--colore-primario);
+}
+
+.home-footer {
+  margin-top: var(--spazio);
+  text-align: center;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.router-messaggio,
+.schermata-stub {
+  color: var(--colore-testo);
+}
+
+/* Adattamento desktop (Admin / Power-user): griglia a più colonne. */
+@media (min-width: 768px) {
+  .home-griglia {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Schermata Gestione prodotti (js/ui/prodotti.js)
+   ------------------------------------------------------------------------- */
+.prodotti-banner {
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--raggio);
+  margin: 0.75rem 0;
+}
+
+.prodotti-banner[data-tipo="ok"] {
+  background: #e6f4ea;
+  border: 1px solid #34a853;
+  color: #14532d;
+}
+
+.prodotti-banner[data-tipo="errore"] {
+  background: #fdecea;
+  border: 1px solid #d93025;
+  color: #611a15;
+}
+
+.prodotti-banner p {
+  margin: 0;
+}
+
+.prodotti-form fieldset {
+  border: 1px solid var(--colore-bordo);
+  border-radius: var(--raggio);
+  background: var(--colore-superficie);
+  padding: var(--spazio);
+}
+
+.prodotti-form legend {
+  font-weight: 600;
+  padding: 0 0.4rem;
+}
+
+.prodotti-campi {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.campo > label {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.campo input[type="text"],
+.campo input[type="number"],
+.campo select {
+  min-height: 44px;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--colore-bordo);
+  border-radius: var(--raggio);
+  background: #fff;
+}
+
+.campo-flag {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.campo-errore {
+  margin: 0;
+  color: #d93025;
+  font-size: 0.85rem;
+}
+
+.campo [aria-invalid="true"] {
+  border-color: #d93025;
+}
+
+.prodotti-azioni {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+button.secondario {
+  background: var(--colore-superficie);
+  color: var(--colore-primario);
+}
+
+.prodotti-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.prodotto {
+  border: 1px solid var(--colore-bordo);
+  border-radius: var(--raggio);
+  background: var(--colore-superficie);
+  padding: 0.75rem;
+}
+
+.prodotto-inattivo {
+  opacity: 0.8;
+  background: #fafafa;
+}
+
+.prodotto-intestazione {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.prodotto-nome {
+  font-weight: 600;
+}
+
+.prodotto-codice {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.badge {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+}
+
+.badge-inattivo {
+  background: #fdecea;
+  color: #611a15;
+  border: 1px solid #d93025;
+}
+
+.prodotto-dettagli {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.15rem 0.75rem;
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.prodotto-dettagli dt {
+  color: #6b7280;
+}
+
+.prodotto-dettagli dd {
+  margin: 0;
+}
+
+.prodotto-azioni {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 768px) {
+  .prodotti-campi {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

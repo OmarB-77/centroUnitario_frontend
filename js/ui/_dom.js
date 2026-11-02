@@ -19,6 +19,9 @@
  *   - attrs             : mappa di attributi HTML (incl. aria-*, title, type, ...)
  *   - dataset           : mappa di data-* (impostati via element.dataset)
  *   - on                : mappa evento → handler (addEventListener)
+ *   - children          : array di nodi/stringhe da appendere (alternativa al
+ *                         terzo argomento `figli`; se presenti entrambi, i
+ *                         `children` delle opzioni vengono appesi per primi)
  *   - <altre proprietà> : assegnate direttamente come proprietà DOM
  *                         (es. value, disabled, checked, htmlFor, ...)
  *
@@ -30,10 +33,16 @@
 export function el(tag, opzioni = {}, figli = []) {
   const node = document.createElement(tag);
   const o = opzioni || {};
+  // I figli possono essere passati sia come terzo argomento sia come
+  // opzioni.children: alcune schermate usano la seconda forma. Li uniamo.
+  const figliDaOpzioni = Array.isArray(o.children) ? o.children : [];
 
   for (const [chiave, valore] of Object.entries(o)) {
     if (valore == null) continue;
-    if (chiave === "class" || chiave === "className") {
+    if (chiave === "children") {
+      // Gestiti insieme ai figli, dopo il ciclo sulle opzioni.
+      continue;
+    } else if (chiave === "class" || chiave === "className") {
       node.className = String(valore);
     } else if (chiave === "text") {
       node.textContent = String(valore);
@@ -61,7 +70,8 @@ export function el(tag, opzioni = {}, figli = []) {
     }
   }
 
-  const lista = Array.isArray(figli) ? figli : [figli];
+  const figliArg = Array.isArray(figli) ? figli : [figli];
+  const lista = [...figliDaOpzioni, ...figliArg];
   for (const f of lista) {
     if (f == null) continue;
     node.appendChild(typeof f === "string" ? document.createTextNode(f) : f);

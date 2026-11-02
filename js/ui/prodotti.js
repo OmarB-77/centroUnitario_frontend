@@ -26,7 +26,7 @@
 // La difesa reale resta lato DB (CHECK/FK/RLS/trigger): questo modulo è il
 // mirror client per un feedback immediato.
 
-import { el, svuota } from "../html.js";
+import { el, svuota } from "./_dom.js";
 import {
   listaProdotti,
   creaProdotto,

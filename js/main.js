@@ -166,4 +166,31 @@ function avvia() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", avvia);
+// Avvio robusto rispetto al timing: con <script type="module"> (deferred) il
+// modulo puo' essere eseguito DOPO che DOMContentLoaded e' gia' scattato; in quel
+// caso un listener aggiunto qui non verrebbe mai invocato e la pagina resterebbe
+// sullo stub "Caricamento in corso...". Percio' se il DOM e' gia' pronto avviamo
+// subito, altrimenti aspettiamo l'evento. Il try/catch rende visibile a schermo
+// un eventuale errore di bootstrap invece di lasciare la pagina muta.
+function avviaSicuro() {
+  try {
+    avvia();
+  } catch (err) {
+    const c = document.getElementById("contenuto");
+    if (c) {
+      c.replaceChildren();
+      const p = document.createElement("p");
+      p.setAttribute("role", "alert");
+      p.textContent = "Errore di avvio. Ricarica la pagina; se persiste, controlla la console del browser.";
+      c.append(p);
+    }
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", avviaSicuro);
+} else {
+  // DOM gia' pronto (es. modulo deferred eseguito dopo il parsing): avvia subito.
+  avviaSicuro();
+}
+

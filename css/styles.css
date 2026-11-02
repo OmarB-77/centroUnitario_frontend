@@ -105,16 +105,30 @@ body {
   background: var(--colore-superficie);
 }
 
-/* Controlli di base, pensati per il tocco su mobile. */
+/* Controlli di base, pensati per il tocco su mobile.
+   Target touch garantito da min-height (44px) senza gonfiare il padding
+   verticale: così i pulsanti restano "sottili" e leggibili. Il padding
+   orizzontale è contenuto per non avere margini attorno al testo troppo ampi. */
 button,
 .pulsante {
-  min-height: 44px;
-  padding: 0.6rem 1rem;
+  min-height: 40px;
+  padding: 0.35rem 0.85rem;
   border: 1px solid var(--colore-primario);
   border-radius: var(--raggio);
   background: var(--colore-primario);
   color: #fff;
+  font-weight: 500;
+  line-height: 1.2;
   cursor: pointer;
+}
+
+/* Spaziatura di sicurezza tra pulsanti adiacenti anche fuori dai contenitori
+   flex con gap esplicito (evita che si "attacchino" come in alcune barre). */
+button + button,
+button + .pulsante,
+.pulsante + button,
+.pulsante + .pulsante {
+  margin-left: 0.5rem;
 }
 
 button:focus-visible,
@@ -398,4 +412,51 @@ button.secondario {
   .prodotti-campi {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+/* -------------------------------------------------------------------------
+   Barre di pulsanti e gruppi di azioni (armadi, lookup codice, ecc.)
+   Spaziatura coerente tra pulsanti affiancati, con a capo su schermi stretti.
+   Le classi .armadi-tabs e .azioni non avevano stile: senza gap i pulsanti
+   risultavano attaccati. Qui si uniforma la spaziatura dei gruppi.
+   ------------------------------------------------------------------------- */
+.armadi-tabs,
+.azioni {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+/* In un contenitore flex con gap, il margine extra tra pulsanti adiacenti
+   (regola generale button + button) è superfluo: lo azzeriamo per evitare
+   spaziature doppie. */
+.armadi-tabs button + button,
+.azioni button + button,
+.prodotti-azioni button + button,
+.prodotto-azioni button + button,
+.home-azioni button + button {
+  margin-left: 0;
+}
+
+/* Le tab di sezione (es. Armadi: "Segnala carenza" / "Registra prelievo").
+   La tab non attiva è resa come pulsante secondario per distinguerla. */
+.armadi-tab {
+  background: var(--colore-superficie);
+  color: var(--colore-primario);
+}
+
+.armadi-tab--attiva {
+  background: var(--colore-primario);
+  color: #fff;
+}
+
+/* Margine tra la barra tab e il contenuto del pannello sottostante. */
+.armadi-pannello {
+  margin-top: 0.75rem;
+}
+
+.armadi-descrizione {
+  margin: 0.25rem 0 0.75rem;
+  color: #4b5563;
 }

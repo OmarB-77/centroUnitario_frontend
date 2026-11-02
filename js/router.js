@@ -82,6 +82,27 @@ export function registraRotta(schermata, handler) {
   _handler.set(schermata, handler);
 }
 
+/**
+ * Registra l'handler della schermata di LOGIN.
+ *
+ * Il login NON è una delle SCHERMATE operative (roles.SCHERMATE): è uno stato a
+ * sé per gli utenti non autenticati, che il router risolve internamente in
+ * `mostraLogin()` cercando la chiave letterale "login" nella mappa degli
+ * handler. Per questo non può passare da `registraRotta` (che valida contro
+ * SCHERMATE e rifiuterebbe "login"). Questa funzione dedicata registra l'handler
+ * con quella chiave speciale, senza la validazione di schermata.
+ *
+ * L'handler riceve `(container, { naviga })`.
+ *
+ * @param {(container: HTMLElement, contesto: { naviga: Function }) => void} handler
+ */
+export function registraLogin(handler) {
+  if (typeof handler !== "function") {
+    throw new Error("registraLogin: handler non valido");
+  }
+  _handler.set("login", handler);
+}
+
 /** Rimuove tutte le rotte registrate (utile nei test). */
 export function reset() {
   _handler.clear();
@@ -324,6 +345,7 @@ export function isAvviato() {
 export default {
   ROTTA_HOME,
   registraRotta,
+  registraLogin,
   naviga,
   avviaRouter,
   risolviERenderizza,

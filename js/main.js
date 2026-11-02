@@ -32,7 +32,7 @@
 import { VERSION } from "./version.js";
 import { registraServiceWorker } from "./pwa.js";
 
-import { avviaRouter, registraRotta } from "./router.js";
+import { avviaRouter, registraRotta, registraLogin } from "./router.js";
 import { SCHERMATE } from "./roles.js";
 
 import { mount as montaLogin } from "./ui/login.js";
@@ -115,9 +115,11 @@ function mostraVersione() {
  * (gestisce internamente le due modalità tramite tab).
  */
 function registraRotte() {
-  // Login: il router usa la chiave letterale "login" per gli utenti non
-  // autenticati. L'handler riceve (container, { naviga }).
-  registraRotta("login", (container, ctx) => {
+  // Login: non è una SCHERMATA operativa, ma uno stato a sé per gli utenti non
+  // autenticati. Si registra con registraLogin (chiave speciale "login" nel
+  // router), non con registraRotta che validerebbe contro SCHERMATE.
+  // L'handler riceve (container, { naviga }).
+  registraLogin((container, ctx) => {
     eseguiCleanupPrecedente();
     montaLogin(container, ctx);
   });

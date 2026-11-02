@@ -5,8 +5,15 @@
 //   GitHub Pages, SENZA bundler né step di build. Importare la build ESM di
 //   supabase-js direttamente da CDN (esm.sh) è coerente con questo vincolo:
 //   nessuna toolchain, il browser carica il modulo così com'è.
-//   La versione è PINNATA a v2 per evitare breaking change inattesi dalla CDN.
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+//
+//   VERSIONE PINNATA ESATTA (2.45.4) — non usare "@2".
+//   Motivo: su esm.sh le build recenti di supabase-js (>= 2.57) iniettano uno
+//   shim Node (/node/process.mjs e affini) che viene valutato al top-level del
+//   modulo e, nel browser su GitHub Pages, faceva fallire l'avvio (eccezione in
+//   fase di import, schermata "Errore di avvio"). La 2.45.4 ha una catena di
+//   dipendenze pulita, senza shim node top-level, ed è stabile per browser.
+//   Se si aggiorna, verificare che l'header esm.sh NON contenga "/node/process.mjs".
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "./config.js";
 
 // Singleton del client Supabase, costruito con URL progetto + anon key (chiave pubblica).

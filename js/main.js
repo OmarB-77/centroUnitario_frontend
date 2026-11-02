@@ -176,6 +176,7 @@ function avviaSicuro() {
   try {
     avvia();
   } catch (err) {
+    console.error("Errore di avvio dell'applicazione:", err);
     const c = document.getElementById("contenuto");
     if (c) {
       c.replaceChildren();
@@ -183,6 +184,14 @@ function avviaSicuro() {
       p.setAttribute("role", "alert");
       p.textContent = "Errore di avvio. Ricarica la pagina; se persiste, controlla la console del browser.";
       c.append(p);
+      // Diagnostica temporanea: mostra a schermo il messaggio reale per
+      // facilitare la diagnosi senza aprire la console del browser.
+      const pre = document.createElement("pre");
+      pre.style.whiteSpace = "pre-wrap";
+      pre.style.fontSize = "12px";
+      pre.style.color = "#b00";
+      pre.textContent = String((err && err.stack) || (err && err.message) || err);
+      c.append(pre);
     }
   }
 }

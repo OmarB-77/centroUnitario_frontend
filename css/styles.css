@@ -1,6 +1,16 @@
 /* =========================================================================
    Centro Unitario — fogli di stile
    Mobile-first (User) con adattamento desktop (Admin / Power-user).
+
+   Impostazione: piccolo "design system" coerente per tutte le schermate.
+   - Superfici a scheda (card) con bordo tenue e ombra leggera.
+   - Form con etichette, campi e gruppi di azioni uniformi.
+   - Liste con dati a sinistra e azioni allineate a destra (allineamento
+     corretto di "Modifica/Elimina" accanto all'elemento, non sotto).
+   - Pulsanti primari/secondari uniformi, tab di sezione, badge, messaggi.
+
+   INSIDIA NOTA (steering): checkbox/radio mantengono l'aspetto nativo
+   (niente appearance:none globale su di esse).
    ========================================================================= */
 
 /* -------------------------------------------------------------------------
@@ -18,9 +28,6 @@ body {
   padding: 0;
 }
 
-/* INSIDIA NOTA (steering): `appearance: none` applicato globalmente rompe il
-   rendering nativo di checkbox e radio. Applichiamo l'azzeramento SOLO ai
-   controlli di tipo testo/pulsante e NON a checkbox/radio, che restano nativi. */
 input:not([type="checkbox"]):not([type="radio"]),
 button,
 select,
@@ -38,6 +45,7 @@ input[type="radio"] {
   appearance: auto;
   width: 1.15rem;
   height: 1.15rem;
+  accent-color: var(--colore-primario);
 }
 
 img,
@@ -53,12 +61,27 @@ video {
    ------------------------------------------------------------------------- */
 :root {
   --colore-primario: #0b5fa5;
-  --colore-testo: #1a1a1a;
-  --colore-sfondo: #f5f6f8;
+  --colore-primario-scuro: #084b84;
+  --colore-primario-chiaro: #e8f1f9;
+  --colore-testo: #1f2733;
+  --colore-testo-tenue: #667085;
+  --colore-sfondo: #eef1f5;
   --colore-superficie: #ffffff;
-  --colore-bordo: #d4d7dd;
+  --colore-bordo: #dce0e6;
+  --colore-bordo-input: #c4cad3;
+
+  --ok-bg: #e6f4ea;
+  --ok-bordo: #34a853;
+  --ok-testo: #14532d;
+  --err-bg: #fdecea;
+  --err-bordo: #d93025;
+  --err-testo: #611a15;
+
   --spazio: 1rem;
   --raggio: 0.5rem;
+  --raggio-sm: 0.375rem;
+  --ombra: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.1);
+  --ombra-forte: 0 4px 12px rgba(16, 24, 40, 0.1);
 }
 
 body {
@@ -67,6 +90,12 @@ body {
   background: var(--colore-sfondo);
   line-height: 1.5;
   font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+h2,
+h3 {
+  color: var(--colore-testo);
 }
 
 /* -------------------------------------------------------------------------
@@ -82,12 +111,15 @@ body {
 .app-header {
   background: var(--colore-primario);
   color: #fff;
-  padding: var(--spazio);
+  padding: 0.85rem var(--spazio);
+  box-shadow: var(--ombra);
 }
 
 .app-titolo {
   margin: 0;
-  font-size: 1.25rem;
+  font-size: 1.2rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 .app-contenuto {
@@ -97,38 +129,97 @@ body {
 }
 
 .app-footer {
-  padding: 0.5rem var(--spazio);
+  padding: 0.6rem var(--spazio);
   text-align: center;
-  color: #6b7280;
-  font-size: 0.85rem;
-  border-top: 1px solid var(--colore-bordo);
-  background: var(--colore-superficie);
+  color: var(--colore-testo-tenue);
+  font-size: 0.8rem;
 }
 
-/* Controlli di base, pensati per il tocco su mobile.
-   Target touch garantito da min-height (44px) senza gonfiare il padding
-   verticale: così i pulsanti restano "sottili" e leggibili. Il padding
-   orizzontale è contenuto per non avere margini attorno al testo troppo ampi. */
+/* Titolo di schermata coerente: le schermate iniziano con un <h2>. */
+.app-contenuto h2:first-child,
+section > h2:first-child {
+  margin: 0 0 1rem;
+  font-size: 1.3rem;
+}
+
+/* -------------------------------------------------------------------------
+   Pulsanti (sistema unificato)
+   Target touch garantito da min-height senza gonfiare il padding verticale.
+   ------------------------------------------------------------------------- */
 button,
-.pulsante {
+.pulsante,
+.btn-primario,
+.btn-secondario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   min-height: 40px;
-  padding: 0.35rem 0.85rem;
+  padding: 0.4rem 0.9rem;
   border: 1px solid var(--colore-primario);
-  border-radius: var(--raggio);
+  border-radius: var(--raggio-sm);
   background: var(--colore-primario);
   color: #fff;
   font-weight: 500;
   line-height: 1.2;
   cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
-/* Spaziatura di sicurezza tra pulsanti adiacenti anche fuori dai contenitori
-   flex con gap esplicito (evita che si "attacchino" come in alcune barre). */
-button + button,
-button + .pulsante,
-.pulsante + button,
-.pulsante + .pulsante {
-  margin-left: 0.5rem;
+button:hover,
+.pulsante:hover,
+.btn-primario:hover {
+  background: var(--colore-primario-scuro);
+  border-color: var(--colore-primario-scuro);
+}
+
+button:active,
+.pulsante:active {
+  transform: translateY(1px);
+}
+
+button:disabled,
+.pulsante:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Variante secondaria: sobria, bordata, su sfondo chiaro.
+   Copre sia la classe .btn-secondario sia il vecchio button.secondario. */
+.btn-secondario,
+button.secondario {
+  background: var(--colore-superficie);
+  color: var(--colore-primario);
+  border-color: var(--colore-bordo-input);
+}
+
+.btn-secondario:hover,
+button.secondario:hover {
+  background: var(--colore-primario-chiaro);
+  border-color: var(--colore-primario);
+}
+
+/* Variante distruttiva (eliminazioni). */
+.btn-pericolo,
+button.pericolo,
+button.btn-elimina {
+  background: var(--colore-superficie);
+  color: var(--err-bordo);
+  border-color: var(--err-bordo);
+}
+
+.btn-pericolo:hover,
+button.pericolo:hover,
+button.btn-elimina:hover {
+  background: var(--err-bg);
+}
+
+/* Bottone a sola icona (scanner, ecc.): quadrato, compatto. */
+.btn-icona {
+  min-width: 40px;
+  padding: 0.4rem 0.55rem;
 }
 
 button:focus-visible,
@@ -141,201 +232,443 @@ textarea:focus-visible {
 }
 
 /* -------------------------------------------------------------------------
-   Adattamento desktop (Admin / Power-user): liste e tabelle più dense.
+   Form: campi, etichette, gruppi di azioni (uniformi tra tutte le schermate)
    ------------------------------------------------------------------------- */
-@media (min-width: 768px) {
-  .app-contenuto {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 1.5rem 2rem;
-  }
-
-  .app-titolo {
-    font-size: 1.5rem;
-  }
-
-  body {
-    font-size: 15px;
-  }
-}
-
-/* -------------------------------------------------------------------------
-   Home filtrata per ruolo (ui/home.js) e schermate stub del router.
-   ------------------------------------------------------------------------- */
-.home-intestazione {
-  margin-bottom: var(--spazio);
-}
-
-.home-titolo {
-  margin: 0 0 0.25rem;
-  font-size: 1.1rem;
-}
-
-.home-saluto {
-  margin: 0;
-  color: #6b7280;
-}
-
-/* Mobile-first: una colonna di tasti ampi, comodi al tocco. */
-.home-griglia {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-}
-
-/* Ogni tasto è un blocco verticale: icona, titolo, descrizione. */
-.home-tasto {
+.campo {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0.2rem;
+  gap: 0.3rem;
+}
+
+.campo > label,
+.campo label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--colore-testo);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+select,
+textarea {
+  min-height: 42px;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--colore-bordo-input);
+  border-radius: var(--raggio-sm);
+  background: #fff;
   width: 100%;
-  min-height: 72px;
-  text-align: left;
-  background: var(--colore-superficie);
-  color: var(--colore-testo);
+}
+
+textarea {
+  min-height: 3rem;
+  resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--colore-primario);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9aa2ad;
+}
+
+/* Riga con una checkbox e la sua etichetta, allineate orizzontalmente. */
+.campo-flag {
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+.campo-flag label {
+  font-weight: 400;
+}
+
+.campo-errore {
+  margin: 0;
+  color: var(--err-bordo);
+  font-size: 0.85rem;
+}
+
+[aria-invalid="true"] {
+  border-color: var(--err-bordo) !important;
+}
+
+/* Gruppo di azioni di un form (es. "Salva" / "Annulla"): in riga, a capo
+   su schermi stretti, con un filo di spazio sopra. */
+.azioni,
+.prodotti-azioni {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+/* In contenitori flex con gap non serve il margine tra pulsanti adiacenti. */
+.azioni button + button,
+.prodotti-azioni button + button,
+.prodotto-azioni button + button,
+.pp-item-azioni button + button,
+.as-item-azioni button + button,
+.home-azioni button + button,
+.armadi-tabs button + button {
+  margin-left: 0;
+}
+
+/* Fallback: pulsanti adiacenti fuori da un contenitore flex con gap. */
+button + button {
+  margin-left: 0.5rem;
+}
+
+/* Fieldset generico usato in alcuni form (prodotti, scarico CU). */
+fieldset {
   border: 1px solid var(--colore-bordo);
-}
-
-.home-tasto__icona {
-  font-size: 1.4rem;
-  line-height: 1;
-}
-
-.home-tasto__titolo {
-  font-weight: 600;
-}
-
-.home-tasto__descrizione {
-  font-size: 0.85rem;
-  color: #6b7280;
-}
-
-.home-vuoto {
-  color: #6b7280;
-}
-
-.home-azioni {
-  margin-top: var(--spazio);
-}
-
-/* Il logout è un'azione secondaria: stile più sobrio, non primario. */
-.home-logout {
+  border-radius: var(--raggio);
   background: var(--colore-superficie);
-  color: var(--colore-primario);
-  border: 1px solid var(--colore-primario);
+  padding: var(--spazio);
+  margin: 0 0 1rem;
 }
 
-.home-footer {
-  margin-top: var(--spazio);
-  text-align: center;
-  color: #6b7280;
-  font-size: 0.85rem;
-}
-
-.router-messaggio,
-.schermata-stub {
+legend {
+  font-weight: 600;
+  padding: 0 0.4rem;
   color: var(--colore-testo);
-}
-
-/* Adattamento desktop (Admin / Power-user): griglia a più colonne. */
-@media (min-width: 768px) {
-  .home-griglia {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  }
 }
 
 /* -------------------------------------------------------------------------
-   Schermata Gestione prodotti (js/ui/prodotti.js)
+   Card: contenitori a scheda riutilizzabili per form ed elenchi.
+   Applicati ai wrapper delle varie schermate per un aspetto coerente.
    ------------------------------------------------------------------------- */
+.pp-form,
+.as-form,
+.ut-form,
+.prodotti-form-wrap,
+.imp-sezione,
+.scaricoCu-form,
+.checklists-pannello,
+.armadi-pannello {
+  background: var(--colore-superficie);
+  border: 1px solid var(--colore-bordo);
+  border-radius: var(--raggio);
+  box-shadow: var(--ombra);
+  padding: 1.1rem;
+  margin-bottom: 1.25rem;
+}
+
+/* I form "inner" riempiono la card con i campi impilati e spaziati. */
+.pp-form-inner,
+.as-form-inner,
+.ut-form-inner,
+.imp-form-password {
+  display: grid;
+  gap: 0.85rem;
+}
+
+/* -------------------------------------------------------------------------
+   Messaggi di stato (aria-live) e banner
+   ------------------------------------------------------------------------- */
+.ui-messaggio {
+  margin: 0.5rem 0;
+  padding: 0;
+  font-size: 0.92rem;
+}
+
+.ui-messaggio:empty {
+  display: none;
+}
+
+.ui-messaggio--errore {
+  color: var(--err-testo);
+  background: var(--err-bg);
+  border: 1px solid var(--err-bordo);
+  border-radius: var(--raggio-sm);
+  padding: 0.55rem 0.8rem;
+}
+
+.ui-messaggio--successo {
+  color: var(--ok-testo);
+  background: var(--ok-bg);
+  border: 1px solid var(--ok-bordo);
+  border-radius: var(--raggio-sm);
+  padding: 0.55rem 0.8rem;
+}
+
 .prodotti-banner {
   padding: 0.6rem 0.9rem;
-  border-radius: var(--raggio);
-  margin: 0.75rem 0;
+  border-radius: var(--raggio-sm);
+  margin: 0 0 1rem;
 }
 
 .prodotti-banner[data-tipo="ok"] {
-  background: #e6f4ea;
-  border: 1px solid #34a853;
-  color: #14532d;
+  background: var(--ok-bg);
+  border: 1px solid var(--ok-bordo);
+  color: var(--ok-testo);
 }
 
 .prodotti-banner[data-tipo="errore"] {
-  background: #fdecea;
-  border: 1px solid #d93025;
-  color: #611a15;
+  background: var(--err-bg);
+  border: 1px solid var(--err-bordo);
+  color: var(--err-testo);
 }
 
 .prodotti-banner p {
   margin: 0;
 }
 
-.prodotti-form fieldset {
+.vuoto,
+.home-vuoto,
+.checklists-vuoto {
+  color: var(--colore-testo-tenue);
+  font-style: italic;
+  margin: 0.5rem 0;
+}
+
+/* -------------------------------------------------------------------------
+   Liste generiche con azioni allineate a destra
+   (punti di prelievo, associazioni, utenti). Pattern comune:
+     <li class="XX-item">
+       <div class="XX-item-dati"> ... </div>
+       <div class="XX-item-azioni"> [Modifica] [Elimina] </div>
+     </li>
+   FIX: prima i due div cadevano in colonna (azioni SOTTO i dati); ora la
+   riga è flex con le azioni a destra e i dati che occupano lo spazio.
+   ------------------------------------------------------------------------- */
+.pp-lista,
+.as-lista,
+.ut-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.pp-item,
+.as-item,
+.ut-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  background: var(--colore-superficie);
   border: 1px solid var(--colore-bordo);
   border-radius: var(--raggio);
-  background: var(--colore-superficie);
-  padding: var(--spazio);
+  padding: 0.75rem 0.9rem;
+  box-shadow: var(--ombra);
 }
 
-.prodotti-form legend {
+.pp-item-dati,
+.as-item-dati,
+.ut-item-dati {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1 1 60%;
+}
+
+.pp-item-nome,
+.as-item-nome,
+.ut-item-nome {
   font-weight: 600;
-  padding: 0 0.4rem;
 }
 
-.prodotti-campi {
+.pp-item-contatti,
+.as-item-note,
+.ut-item-id {
+  color: var(--colore-testo-tenue);
+  font-size: 0.88rem;
+  word-break: break-word;
+}
+
+.pp-item-contatti--assenti,
+.as-item-note--assenti,
+.ut-item-nome--assente {
+  color: #9aa2ad;
+  font-style: italic;
+}
+
+.pp-item-azioni,
+.as-item-azioni,
+.ut-item-azioni {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+/* Il selettore di ruolo nella lista utenti: etichetta sopra la select. */
+.ut-item-ruolo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.ut-item-ruolo-label {
+  font-size: 0.78rem;
+  color: var(--colore-testo-tenue);
+}
+
+.ut-ruolo {
+  min-width: 10rem;
+}
+
+/* -------------------------------------------------------------------------
+   Home filtrata per ruolo (ui/home.js) e schermate stub del router.
+   ------------------------------------------------------------------------- */
+.home-intestazione {
+  margin-bottom: 1.25rem;
+}
+
+.home-titolo {
+  margin: 0 0 0.25rem;
+  font-size: 1.25rem;
+}
+
+.home-saluto {
+  margin: 0;
+  color: var(--colore-testo-tenue);
+}
+
+.home-griglia {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.75rem;
 }
 
-.campo {
+/* Ogni tasto è una card cliccabile: icona, titolo, descrizione. */
+.home-tasto {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
   gap: 0.25rem;
+  width: 100%;
+  min-height: 84px;
+  text-align: left;
+  padding: 0.9rem 1rem;
+  background: var(--colore-superficie);
+  color: var(--colore-testo);
+  border: 1px solid var(--colore-bordo);
+  border-radius: var(--raggio);
+  box-shadow: var(--ombra);
 }
 
-.campo > label {
+.home-tasto:hover {
+  border-color: var(--colore-primario);
+  box-shadow: var(--ombra-forte);
+  background: var(--colore-superficie);
+}
+
+.home-tasto__icona {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.home-tasto__titolo {
+  font-weight: 600;
+  color: var(--colore-primario);
+}
+
+.home-tasto__descrizione {
+  font-size: 0.85rem;
+  color: var(--colore-testo-tenue);
+  font-weight: 400;
+}
+
+.home-azioni {
+  margin-top: 1.25rem;
+}
+
+.home-logout {
+  background: var(--colore-superficie);
+  color: var(--colore-primario);
+  border: 1px solid var(--colore-bordo-input);
+}
+
+.home-logout:hover {
+  background: var(--colore-primario-chiaro);
+  border-color: var(--colore-primario);
+}
+
+.home-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: var(--colore-testo-tenue);
+  font-size: 0.85rem;
+}
+
+.router-messaggio,
+.schermata-stub {
+  color: var(--colore-testo);
+  background: var(--colore-superficie);
+  border: 1px solid var(--colore-bordo);
+  border-radius: var(--raggio);
+  padding: 1rem;
+}
+
+/* -------------------------------------------------------------------------
+   Login
+   ------------------------------------------------------------------------- */
+.login {
+  max-width: 420px;
+  margin: 2rem auto;
+  background: var(--colore-superficie);
+  border: 1px solid var(--colore-bordo);
+  border-radius: var(--raggio);
+  box-shadow: var(--ombra-forte);
+  padding: 1.5rem;
+}
+
+.login-titolo {
+  margin: 0 0 1rem;
+  font-size: 1.4rem;
+}
+
+.login-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.login-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.login-label {
   font-size: 0.9rem;
   font-weight: 500;
 }
 
-.campo input[type="text"],
-.campo input[type="number"],
-.campo select {
-  min-height: 44px;
-  padding: 0.45rem 0.6rem;
-  border: 1px solid var(--colore-bordo);
-  border-radius: var(--raggio);
-  background: #fff;
+.login-invia {
+  width: 100%;
+  margin-top: 0.25rem;
 }
 
-.campo-flag {
-  flex-direction: row;
-  align-items: center;
-  gap: 0.5rem;
-  margin: 0.5rem 0;
+.login-footer {
+  margin-top: 1.25rem;
+  text-align: center;
+  color: var(--colore-testo-tenue);
+  font-size: 0.8rem;
 }
 
-.campo-errore {
-  margin: 0;
-  color: #d93025;
-  font-size: 0.85rem;
-}
-
-.campo [aria-invalid="true"] {
-  border-color: #d93025;
-}
-
-.prodotti-azioni {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  flex-wrap: wrap;
-}
-
-button.secondario {
-  background: var(--colore-superficie);
-  color: var(--colore-primario);
+/* -------------------------------------------------------------------------
+   Gestione prodotti (ui/prodotti.js)
+   ------------------------------------------------------------------------- */
+.prodotti-campi {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
 }
 
 .prodotti-lista {
@@ -350,12 +683,13 @@ button.secondario {
   border: 1px solid var(--colore-bordo);
   border-radius: var(--raggio);
   background: var(--colore-superficie);
-  padding: 0.75rem;
+  padding: 0.9rem;
+  box-shadow: var(--ombra);
 }
 
 .prodotto-inattivo {
-  opacity: 0.8;
-  background: #fafafa;
+  opacity: 0.85;
+  background: #f7f8fa;
 }
 
 .prodotto-intestazione {
@@ -367,35 +701,37 @@ button.secondario {
 
 .prodotto-nome {
   font-weight: 600;
+  font-size: 1.02rem;
 }
 
 .prodotto-codice {
-  color: #6b7280;
+  color: var(--colore-testo-tenue);
   font-size: 0.9rem;
 }
 
 .badge {
-  font-size: 0.75rem;
-  padding: 0.1rem 0.5rem;
+  font-size: 0.72rem;
+  padding: 0.12rem 0.55rem;
   border-radius: 999px;
+  font-weight: 600;
 }
 
 .badge-inattivo {
-  background: #fdecea;
-  color: #611a15;
-  border: 1px solid #d93025;
+  background: var(--err-bg);
+  color: var(--err-testo);
+  border: 1px solid var(--err-bordo);
 }
 
 .prodotto-dettagli {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 0.15rem 0.75rem;
-  margin: 0.5rem 0;
+  gap: 0.2rem 0.9rem;
+  margin: 0.6rem 0;
   font-size: 0.9rem;
 }
 
 .prodotto-dettagli dt {
-  color: #6b7280;
+  color: var(--colore-testo-tenue);
 }
 
 .prodotto-dettagli dd {
@@ -406,57 +742,233 @@ button.secondario {
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-}
-
-@media (min-width: 768px) {
-  .prodotti-campi {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  margin-top: 0.5rem;
 }
 
 /* -------------------------------------------------------------------------
-   Barre di pulsanti e gruppi di azioni (armadi, lookup codice, ecc.)
-   Spaziatura coerente tra pulsanti affiancati, con a capo su schermi stretti.
-   Le classi .armadi-tabs e .azioni non avevano stile: senza gap i pulsanti
-   risultavano attaccati. Qui si uniforma la spaziatura dei gruppi.
+   Armadi di ripristino (ui/armadi.js): tab di sezione + lookup codice
    ------------------------------------------------------------------------- */
 .armadi-tabs,
-.azioni {
+.checklists-tablist {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.4rem;
+  margin: 0 0 1rem;
+  border-bottom: 1px solid var(--colore-bordo);
+  padding-bottom: 0.5rem;
+}
+
+.armadi-tab,
+.checklists-tab {
+  background: var(--colore-superficie);
+  color: var(--colore-primario);
+  border-color: var(--colore-bordo-input);
+}
+
+.armadi-tab--attiva,
+.checklists-tab[aria-selected="true"] {
+  background: var(--colore-primario);
+  color: #fff;
+  border-color: var(--colore-primario);
+}
+
+.armadi-descrizione,
+.checklists-barra {
+  margin: 0.25rem 0 0.9rem;
+  color: var(--colore-testo-tenue);
+}
+
+.armadi-prodotto,
+.scaricoCu-prodotto {
+  font-weight: 600;
   margin: 0.5rem 0;
 }
 
-/* In un contenitore flex con gap, il margine extra tra pulsanti adiacenti
-   (regola generale button + button) è superfluo: lo azzeriamo per evitare
-   spaziature doppie. */
-.armadi-tabs button + button,
-.azioni button + button,
-.prodotti-azioni button + button,
-.prodotto-azioni button + button,
-.home-azioni button + button {
-  margin-left: 0;
+.armadi-giacenza {
+  color: var(--colore-testo-tenue);
+  margin-left: 0.5rem;
 }
 
-/* Le tab di sezione (es. Armadi: "Segnala carenza" / "Registra prelievo").
-   La tab non attiva è resa come pulsante secondario per distinguerla. */
-.armadi-tab {
+.armadi-warning,
+.scaricoCu-messaggio[role="status"] {
+  margin: 0.4rem 0;
+}
+
+.armadi-warning {
+  color: var(--err-testo);
+  background: var(--err-bg);
+  border: 1px solid var(--err-bordo);
+  border-radius: var(--raggio-sm);
+  padding: 0.5rem 0.75rem;
+}
+
+.armadi-scanner,
+.scaricoCu-scanner {
+  margin: 0.75rem 0;
+  border: 1px solid var(--colore-bordo);
+  border-radius: var(--raggio-sm);
+  overflow: hidden;
+}
+
+/* -------------------------------------------------------------------------
+   Check-list operative (ui/checklists.js)
+   ------------------------------------------------------------------------- */
+.checklists-barra {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.checklists-titolo-sezione {
+  margin: 0 0 0.75rem;
+  font-size: 1.05rem;
+}
+
+.checklists-lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.checklists-item {
+  border: 1px solid var(--colore-bordo);
+  border-left: 4px solid var(--colore-primario);
+  border-radius: var(--raggio);
   background: var(--colore-superficie);
-  color: var(--colore-primario);
+  padding: 0.75rem 0.9rem;
+  box-shadow: var(--ombra);
 }
 
-.armadi-tab--attiva {
-  background: var(--colore-primario);
-  color: #fff;
+.checklists-item--cu {
+  border-left-color: #d9822b;
 }
 
-/* Margine tra la barra tab e il contenuto del pannello sottostante. */
-.armadi-pannello {
+.checklists-item--armadi {
+  border-left-color: #0b5fa5;
+}
+
+.checklists-item--scadenza {
+  border-left-color: #d93025;
+}
+
+.checklists-riga-intestazione {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.checklists-nome {
+  font-weight: 600;
+}
+
+.checklists-codice {
+  color: var(--colore-testo-tenue);
+  font-size: 0.9rem;
+}
+
+.checklists-dettagli {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.9rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+}
+
+.checklists-dettagli dt {
+  color: var(--colore-testo-tenue);
+}
+
+.checklists-dettagli dd {
+  margin: 0;
+}
+
+.checklists-ordine {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  font-size: 0.92rem;
+}
+
+/* -------------------------------------------------------------------------
+   Scarico Centro Unitario (ui/scaricoCu.js): radio destinazione + dettagli
+   ------------------------------------------------------------------------- */
+.scaricoCu-form {
+  display: grid;
+  gap: 0;
+}
+
+.scaricoCu-radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: 1rem;
+}
+
+.scaricoCu-dettaglio {
   margin-top: 0.75rem;
 }
 
-.armadi-descrizione {
-  margin: 0.25rem 0 0.75rem;
-  color: #4b5563;
+.scaricoCu-info-lotto {
+  color: var(--colore-testo-tenue);
+  font-size: 0.9rem;
+  margin: 0.3rem 0;
+}
+
+/* -------------------------------------------------------------------------
+   Impostazioni (ui/impostazioni.js)
+   ------------------------------------------------------------------------- */
+.imp-sezione h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.imp-hint {
+  color: var(--colore-testo-tenue);
+  font-size: 0.88rem;
+  margin: 0 0 0.75rem;
+}
+
+/* -------------------------------------------------------------------------
+   Adattamento desktop (Admin / Power-user): liste e form più densi.
+   ------------------------------------------------------------------------- */
+@media (min-width: 768px) {
+  .app-contenuto {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 1.5rem 2rem;
+  }
+
+  .app-titolo {
+    font-size: 1.4rem;
+  }
+
+  body {
+    font-size: 15px;
+  }
+
+  .home-griglia {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  }
+
+  .prodotti-campi {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* I form "inner" a due colonne su desktop, per compattezza. */
+  .pp-form-inner,
+  .as-form-inner,
+  .ut-form-inner {
+    grid-template-columns: repeat(2, 1fr);
+    align-items: end;
+  }
+
+  .pp-form-inner .azioni,
+  .as-form-inner .azioni,
+  .ut-form-inner .azioni {
+    grid-column: 1 / -1;
+  }
 }

@@ -22,7 +22,7 @@
 // Non lasciare MAI disallineati js/version.js, package.json, questo APP_VERSION
 // e il tag git.
 // ───────────────────────────────────────────────────────────────────────────
-const APP_VERSION = "0.1.12";
+const APP_VERSION = "0.1.13";
 
 // Nome della cache derivato dalla versione: cambia a ogni release e fa sì che
 // l'evento `activate` elimini le cache delle versioni precedenti (R16.5).

@@ -517,11 +517,29 @@ legend {
 .as-item-azioni,
 .ut-item-azioni {
   display: flex;
-  align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
   flex-shrink: 0;
   margin-left: auto;
+}
+
+/* Punti di prelievo / associazioni: solo bottoni, centrati sulla riga. */
+.pp-item-azioni,
+.as-item-azioni {
+  align-items: center;
+}
+
+/* Utenti: la colonna azioni contiene il gruppo "Ruolo" (label sopra la select)
+   e il bottone elimina. Allineiamo in BASSO così il cestino combacia con la
+   base della select invece di scivolare in alto accanto alla label. */
+.ut-item-azioni {
+  align-items: flex-end;
+}
+
+/* Cestino alla stessa altezza della select ruolo (42px) per un allineamento
+   pulito della riga. */
+.ut-item-azioni .btn-elimina {
+  min-height: 42px;
 }
 
 /* Il selettore di ruolo nella lista utenti: etichetta sopra la select. */

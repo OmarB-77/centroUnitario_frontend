@@ -110,9 +110,42 @@ async function leggiResponse(response) {
  */
 async function invocaGestioneUtenti(body) {
   try {
-    const { data, error } = await supabase.functions.invoke(NOME_FUNZIONE, {
-      body,
-    });
+    // Assicura un access token valido PRIMA di invocare la Edge Function.
+    // Su PWA/mobile la tab può restare sospesa a lungo: il refresh proattivo
+    // schedulato da supabase-js può non essere ancora scattato al ritorno in
+    // primo piano, e invoke allegherebbe un token scaduto (la function
+    // risponderebbe 401 "token scaduto o non valido"). getSession() rinnova il
+    // token se è prossimo alla scadenza; passiamo poi il token fresco in modo
+    // esplicito nell'header Authorization dell'invoke.
+    let tokenFresco = null;
+    try {
+      const { data: sess } = await supabase.auth.getSession();
+      let sessione = sess?.session ?? null;
+
+      // Se il token è scaduto (o scade entro 60s) forziamo un refresh esplicito,
+      // perché getSession non sempre rinnova proattivamente dopo una lunga
+      // sospensione della tab.
+      const scadenza = sessione?.expires_at ?? 0; // secondi epoch
+      const traScadenza = scadenza - Math.floor(Date.now() / 1000);
+      if (sessione && traScadenza < 60) {
+        const { data: refreshed } = await supabase.auth.refreshSession();
+        if (refreshed?.session) sessione = refreshed.session;
+      }
+
+      tokenFresco = sessione?.access_token ?? null;
+    } catch {
+      tokenFresco = null;
+    }
+
+    const opzioniInvoke = { body };
+    if (tokenFresco) {
+      opzioniInvoke.headers = { Authorization: `Bearer ${tokenFresco}` };
+    }
+
+    const { data, error } = await supabase.functions.invoke(
+      NOME_FUNZIONE,
+      opzioniInvoke,
+    );
 
     if (error) {
       // FunctionsHttpError espone la Response originale in `context`.

@@ -38,6 +38,7 @@ import {
   validaCampiScadenza,
 } from "../domain/validation.js";
 import { avviaScansione, fermaScansione, ScannerError } from "../scanner.js";
+import { iconaBarcode } from "./_icone.js";
 
 // Id del contenitore DOM in cui lo scanner monta lo stream video.
 const ID_SCANNER = "carico-cu-scanner";
@@ -152,10 +153,10 @@ export function mount(container) {
 
   const riga = el("div", { classe: "riga-codice" });
   const btnScansiona = el("button", {
-    classe: "pulsante pulsante-icona",
-    testo: "📷",
+    classe: "btn-scanner btn-icona",
     attr: { type: "button", "aria-label": "Scansiona il codice con la fotocamera", title: "Scansiona il codice" },
   });
+  btnScansiona.appendChild(iconaBarcode());
   riga.append(wCodice, btnScansiona);
   gruppoProdotto.append(riga);
 

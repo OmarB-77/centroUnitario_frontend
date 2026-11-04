@@ -40,6 +40,7 @@ import {
   scansioneAttiva,
   ScannerError,
 } from "../scanner.js";
+import { iconaBarcode, impostaIconaBottone } from "./_icone.js";
 import {
   validaNome,
   validaCodice,
@@ -219,18 +220,18 @@ export function mount(container) {
   const legenda = el("legend", { text: "Nuovo prodotto" });
 
   // Campo codice con opzione di scansione barcode live dalla fotocamera.
-  // L'input resta modificabile a mano (fallback); il bottone 📷 avvia/ferma lo
+  // L'input resta modificabile a mano (fallback); il bottone con icona barcode avvia/ferma lo
   // scanner, che a lettura valida riempie il campo e si spegne.
   const inputCodice = inputTesto("codice", { maxlength: "50", required: "required" });
   const btnScannerCodice = el("button", {
-    class: "btn-secondario btn-icona",
+    class: "btn-scanner btn-icona",
     attrs: {
       type: "button",
       "aria-label": "Scansiona il codice con la fotocamera",
       title: "Scansiona codice",
     },
-    text: "📷",
   });
+  btnScannerCodice.appendChild(iconaBarcode());
   const scannerBoxCodice = el("div", {
     class: "prodotti-scanner",
     attrs: { id: ID_SCANNER_CODICE },
@@ -341,7 +342,7 @@ export function mount(container) {
     }
     stato.scannerOn = false;
     scannerBoxCodice.hidden = true;
-    btnScannerCodice.textContent = "📷";
+    impostaIconaBottone(btnScannerCodice, "barcode");
     btnScannerCodice.setAttribute("aria-label", "Scansiona il codice con la fotocamera");
     btnScannerCodice.title = "Scansiona codice";
   }
@@ -353,7 +354,7 @@ export function mount(container) {
       return;
     }
     scannerBoxCodice.hidden = false;
-    btnScannerCodice.textContent = "⏹";
+    impostaIconaBottone(btnScannerCodice, "stop");
     btnScannerCodice.setAttribute("aria-label", "Ferma la scansione");
     btnScannerCodice.title = "Ferma scansione";
     try {

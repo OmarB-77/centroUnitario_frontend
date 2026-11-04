@@ -222,6 +222,24 @@ button.btn-elimina:hover {
   padding: 0.4rem 0.55rem;
 }
 
+/* Bottone che apre lo scanner barcode: aspetto UNIFORME su tutte le schermate
+   (primario blu), indipendentemente dal contesto. Sovrascrive eventuali classi
+   secondarie applicate localmente. L'icona SVG eredita il colore (currentColor). */
+.btn-scanner {
+  background: var(--colore-primario);
+  color: #fff;
+  border-color: var(--colore-primario);
+}
+
+.btn-scanner:hover {
+  background: var(--colore-primario-scuro);
+  border-color: var(--colore-primario-scuro);
+}
+
+.btn-scanner .icona {
+  display: block;
+}
+
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
@@ -978,16 +996,22 @@ legend {
    Campo "Codice" con scansione barcode (gestione prodotti): l'input cresce,
    il bottone scanner resta compatto accanto, su una sola riga.
    ------------------------------------------------------------------------- */
-.azioni-codice {
+.azioni-codice,
+.riga-codice {
+  display: flex;
   align-items: center;
+  gap: 0.5rem;
   flex-wrap: nowrap;
 }
 
-.azioni-codice input[type="text"] {
+.azioni-codice input[type="text"],
+.riga-codice input[type="text"],
+.riga-codice .campo {
   flex: 1 1 auto;
   min-width: 0;
 }
 
-.azioni-codice button {
+.azioni-codice button,
+.riga-codice button {
   flex: 0 0 auto;
 }

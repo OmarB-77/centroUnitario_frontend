@@ -53,6 +53,7 @@ import {
   ScannerError,
 } from "../scanner.js";
 import { el, svuota, areaMessaggi, mostraMessaggio } from "./_dom.js";
+import { iconaBarcode, impostaIconaBottone } from "./_icone.js";
 
 /** Id dei contenitori DOM usati dallo scanner live (uno per modalità). */
 const ID_SCANNER_SEGN = "armadi-scanner-segnalazione";
@@ -132,12 +133,13 @@ export function mount(container) {
   const segnBtnCerca = el("button", { type: "button", text: "Cerca" });
   const segnBtnScanner = el("button", {
     type: "button",
-    text: "📷",
+    class: "btn-scanner btn-icona",
     attrs: {
       title: "Avvia scansione",
       "aria-label": "Avvia la scansione del codice con la fotocamera",
     },
   });
+  segnBtnScanner.appendChild(iconaBarcode());
   const segnScannerBox = el("div", {
     id: ID_SCANNER_SEGN,
     class: "armadi-scanner",
@@ -203,12 +205,13 @@ export function mount(container) {
   const prelBtnCerca = el("button", { type: "button", text: "Cerca" });
   const prelBtnScanner = el("button", {
     type: "button",
-    text: "📷",
+    class: "btn-scanner btn-icona",
     attrs: {
       title: "Avvia scansione",
       "aria-label": "Avvia la scansione del codice con la fotocamera",
     },
   });
+  prelBtnScanner.appendChild(iconaBarcode());
   const prelScannerBox = el("div", {
     id: ID_SCANNER_PREL,
     class: "armadi-scanner",
@@ -320,7 +323,7 @@ export function mount(container) {
       [prelScannerBox, prelBtnScanner],
     ]) {
       box.hidden = true;
-      btn.textContent = "📷";
+      impostaIconaBottone(btn, "barcode");
       btn.setAttribute("aria-label", "Avvia la scansione del codice con la fotocamera");
       btn.title = "Avvia scansione";
     }
@@ -345,7 +348,7 @@ export function mount(container) {
     }
 
     box.hidden = false;
-    btn.textContent = "⏹";
+    impostaIconaBottone(btn, "stop");
     btn.setAttribute("aria-label", "Ferma la scansione");
     btn.title = "Ferma scansione";
 
@@ -363,7 +366,7 @@ export function mount(container) {
       stato.scannerOn = false;
       stato.scannerId = null;
       box.hidden = true;
-      btn.textContent = "📷";
+      impostaIconaBottone(btn, "barcode");
       btn.setAttribute("aria-label", "Avvia la scansione del codice con la fotocamera");
       btn.title = "Avvia scansione";
       const msg =

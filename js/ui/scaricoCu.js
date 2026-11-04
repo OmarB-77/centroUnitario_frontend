@@ -53,6 +53,7 @@ import { scaricoCu } from "../api/movimentiCu.js";
 import { lookupPerCodice } from "../domain/scanner_lookup.js";
 import { validaQuantita, validaDestinazione } from "../domain/validation.js";
 import { quantitaInBase, UNITA_BASE, UNITA_CARICO } from "../domain/units.js";
+import { iconaBarcode, impostaIconaBottone } from "./_icone.js";
 import {
   avviaScansione,
   fermaScansione,
@@ -163,10 +164,11 @@ export function mount(container) {
   const btnCerca = el("button", { type: "button", text: "Cerca" });
   const btnScanner = el("button", {
     type: "button",
-    text: "📷",
+    class: "btn-scanner btn-icona",
     title: "Avvia scansione",
     "aria-label": "Avvia la scansione del codice con la fotocamera",
   });
+  btnScanner.appendChild(iconaBarcode());
 
   const scannerBox = el("div", {
     id: ID_SCANNER,
@@ -498,7 +500,7 @@ export function mount(container) {
       return;
     }
     scannerBox.hidden = false;
-    btnScanner.textContent = "⏹";
+    impostaIconaBottone(btnScanner, "stop");
     btnScanner.setAttribute("aria-label", "Ferma la scansione");
     btnScanner.title = "Ferma scansione";
     try {
@@ -514,7 +516,7 @@ export function mount(container) {
     } catch (e) {
       stato.scannerOn = false;
       scannerBox.hidden = true;
-      btnScanner.textContent = "📷";
+      impostaIconaBottone(btnScanner, "barcode");
       btnScanner.setAttribute("aria-label", "Avvia la scansione del codice con la fotocamera");
       btnScanner.title = "Avvia scansione";
       const msg =
@@ -533,7 +535,7 @@ export function mount(container) {
     }
     stato.scannerOn = false;
     scannerBox.hidden = true;
-    btnScanner.textContent = "📷";
+    impostaIconaBottone(btnScanner, "barcode");
     btnScanner.setAttribute("aria-label", "Avvia la scansione del codice con la fotocamera");
     btnScanner.title = "Avvia scansione";
   }

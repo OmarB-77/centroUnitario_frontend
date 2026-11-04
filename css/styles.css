@@ -687,6 +687,7 @@ legend {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.85rem;
+  align-items: start;
 }
 
 .prodotti-lista {
@@ -996,22 +997,39 @@ legend {
    Campo "Codice" con scansione barcode (gestione prodotti): l'input cresce,
    il bottone scanner resta compatto accanto, su una sola riga.
    ------------------------------------------------------------------------- */
+/* Riga "campo di testo + bottone/i di azione affiancati" (es. codice + Cerca +
+   scanner). L'input cresce, i bottoni restano compatti e TUTTI allineati alla
+   base dell'input (align-items: flex-end), così non scivolano più in alto/basso. */
+.campo-con-azione,
 .azioni-codice,
 .riga-codice {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   gap: 0.5rem;
   flex-wrap: nowrap;
 }
 
-.azioni-codice input[type="text"],
-.riga-codice input[type="text"],
-.riga-codice .campo {
+/* L'input (o il sotto-campo che lo contiene, come nel carico) occupa lo spazio
+   residuo; i bottoni restano della loro dimensione naturale. */
+.campo-con-azione > input,
+.azioni-codice > input,
+.riga-codice > .campo,
+.riga-codice > input {
   flex: 1 1 auto;
   min-width: 0;
 }
 
-.azioni-codice button,
-.riga-codice button {
+.campo-con-azione > button,
+.azioni-codice > button,
+.riga-codice > button {
   flex: 0 0 auto;
+}
+
+/* Input e bottoni nella stessa riga devono avere la STESSA altezza, altrimenti
+   l'allineamento alla base lascia un mezzo pixel di sfasamento percepibile.
+   Gli input sono 42px (regola globale): portiamo i bottoni della riga a 42px. */
+.campo-con-azione > button,
+.azioni-codice > button,
+.riga-codice > button {
+  min-height: 42px;
 }

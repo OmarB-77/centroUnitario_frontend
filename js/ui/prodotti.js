@@ -253,7 +253,7 @@ export function mount(container) {
     class: "campo",
     children: [
       el("label", { text: "Codice *", attrs: { for: "p-codice" } }),
-      el("div", { class: "azioni azioni-codice", children: [inputCodice, btnScannerCodice] }),
+      el("div", { class: "azioni-codice", children: [inputCodice, btnScannerCodice] }),
       scannerBoxCodice,
       errCodice,
     ],

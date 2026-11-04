@@ -178,12 +178,18 @@ export function mount(container) {
 
   const nomeProdotto = el("p", { class: "scaricoCu-prodotto", "aria-live": "polite" });
 
-  const sezioneProdotto = el("fieldset", {}, [
-    el("legend", { text: "1. Prodotto" }),
-    labelCodice,
+  // Riga "input codice + azioni" allineata in basso: label sopra a larghezza
+  // piena, poi input (che cresce) affiancato ai bottoni Cerca e barcode.
+  const rigaCodice = el("div", { class: "campo-con-azione" }, [
     inputCodice,
     btnCerca,
     btnScanner,
+  ]);
+
+  const sezioneProdotto = el("fieldset", {}, [
+    el("legend", { text: "1. Prodotto" }),
+    labelCodice,
+    rigaCodice,
     scannerBox,
     nomeProdotto,
   ]);

@@ -14,7 +14,7 @@
 //   - Nessun accesso al DOM: l'escape anti-XSS avviene nel layer UI.
 //
 // Mapping colonne DB (vedi migrazione 0002_anagrafiche.sql):
-//   nome, codice, unita_carico, unita_base, pezzi_per_confezione,
+//   nome, codice, pezzi_per_confezione,
 //   giacenza_minima_cu, giacenza_minima_armadi, intervallo_allerta_scadenza,
 //   senza_scadenza, attivo, punto_di_prelievo_id,
 //   posizioni → { cu_scaffale, cu_piano, armadio, armadio_scaffale } (colonne separate sul DB).
@@ -40,8 +40,6 @@ const COLONNE = [
   "id",
   "nome",
   "codice",
-  "unita_carico",
-  "unita_base",
   "pezzi_per_confezione",
   "giacenza_minima_cu",
   "giacenza_minima_armadi",
@@ -137,20 +135,6 @@ function validaDatiProdotto(dati, opts = {}) {
     aggiungi(validaIntervallo(aIntero(dati.intervallo_allerta_scadenza)));
   }
 
-  // unita_carico / unita_base: stringhe non vuote (obbligatorie alla creazione).
-  const unitaRichiesta = (campo, etichetta) => {
-    const v = dati[campo];
-    if (typeof v !== "string" || v.trim().length === 0) {
-      errori.push(`${etichetta} è obbligatoria.`);
-    }
-  };
-  if (!parziale || presente("unita_carico")) {
-    unitaRichiesta("unita_carico", "L'unità di carico");
-  }
-  if (!parziale || presente("unita_base")) {
-    unitaRichiesta("unita_base", "L'unità base");
-  }
-
   return errori;
 }
 
@@ -180,8 +164,6 @@ function costruisciRiga(dati, opts = {}) {
 
   copiaTesto("nome");
   copiaTesto("codice");
-  copiaTesto("unita_carico");
-  copiaTesto("unita_base");
   copiaIntero("pezzi_per_confezione");
   copiaIntero("giacenza_minima_cu");
   copiaIntero("giacenza_minima_armadi");

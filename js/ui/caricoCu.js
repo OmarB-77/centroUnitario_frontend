@@ -7,7 +7,7 @@
 //     lookupPerCodice (js/domain/scanner_lookup.js) contro l'anagrafica caricata
 //     per selezionare il prodotto; fallback con inserimento manuale del codice;
 //   - scelta ESPLICITA e SENZA DEFAULT dell'unità di inserimento
-//     (unita_base / unita_carico) (R7.11/R7.12), con visualizzazione dei
+//     (etichette fisse "Pezzi" / "Confezioni") (R7.11/R7.12), con visualizzazione dei
 //     pezzi_per_confezione e anteprima LIVE della quantità risultante in unità
 //     base (quantitaInBase di js/domain/units.js) (R7.1/R7.13);
 //   - quantità (intero >= 1) e lotto opzionale (R7.2/R7.3);
@@ -185,8 +185,8 @@ export function mount(container) {
     testo: "— Seleziona unità —",
     attr: { value: "", disabled: "disabled", selected: "selected" },
   });
-  const optBase = el("option", { testo: "Unità base", attr: { value: UNITA_BASE } });
-  const optCarico = el("option", { testo: "Unità di carico (confezione)", attr: { value: UNITA_CARICO } });
+  const optBase = el("option", { testo: "Pezzi", attr: { value: UNITA_BASE } });
+  const optCarico = el("option", { testo: "Confezioni", attr: { value: UNITA_CARICO } });
   selUnita.append(optVuota, optBase, optCarico);
   const { wrapper: wUnita, errore: errUnita } = campoConErrore(
     "carico-cu-unita",

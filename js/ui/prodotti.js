@@ -6,7 +6,7 @@
 //   - elencare tutti i prodotti (attivi e disattivati), ordinati per nome, con
 //     un badge per i prodotti non attivi (R1.3, R1.5);
 //   - offrire un form completo di anagrafica con TUTTI i campi del modello:
-//     nome, codice, unita_carico, unita_base, pezzi_per_confezione,
+//     nome, codice, pezzi_per_confezione,
 //     giacenza_minima_cu, giacenza_minima_armadi, intervallo_allerta_scadenza,
 //     flag senza_scadenza, flag attivo, posizioni (cu_scaffale, cu_piano,
 //     armadio, armadio_scaffale) e punto_di_prelievo_id (select FK) (R1.1–R1.14);
@@ -213,8 +213,6 @@ export function mount(container) {
     children: [
       gruppoCampo("p-nome", "Nome *", inputTesto("nome", { maxlength: "200", required: "required" })),
       gruppoCampo("p-codice", "Codice *", inputTesto("codice", { maxlength: "50", required: "required" })),
-      gruppoCampo("p-unita_carico", "Unità di carico *", inputTesto("unita_carico", { required: "required" })),
-      gruppoCampo("p-unita_base", "Unità base *", inputTesto("unita_base", { required: "required" })),
     ],
   });
 
@@ -311,8 +309,6 @@ export function mount(container) {
     return {
       nome: v("nome"),
       codice: v("codice"),
-      unita_carico: v("unita_carico"),
-      unita_base: v("unita_base"),
       pezzi_per_confezione: aIntero(v("pezzi_per_confezione")),
       giacenza_minima_cu: aIntero(v("giacenza_minima_cu")),
       giacenza_minima_armadi: aIntero(v("giacenza_minima_armadi")),
@@ -348,15 +344,6 @@ export function mount(container) {
 
     applica("p-nome", validaNome(dati.nome));
     applica("p-codice", validaCodice(dati.codice));
-
-    if (typeof dati.unita_carico !== "string" || dati.unita_carico.trim() === "") {
-      mostraErroreInline("p-unita_carico", "L'unità di carico è obbligatoria.");
-      valido = false;
-    }
-    if (typeof dati.unita_base !== "string" || dati.unita_base.trim() === "") {
-      mostraErroreInline("p-unita_base", "L'unità base è obbligatoria.");
-      valido = false;
-    }
 
     for (const def of CAMPI_INTERI) {
       applica(`p-${def.nome}`, def.valida(dati[def.nome]));
@@ -422,8 +409,6 @@ export function mount(container) {
     stato.inModifica = p.id;
     controlli.nome.value = p.nome ?? "";
     controlli.codice.value = p.codice ?? "";
-    controlli.unita_carico.value = p.unita_carico ?? "";
-    controlli.unita_base.value = p.unita_base ?? "";
     controlli.pezzi_per_confezione.value = p.pezzi_per_confezione ?? "";
     controlli.giacenza_minima_cu.value = p.giacenza_minima_cu ?? "";
     controlli.giacenza_minima_armadi.value = p.giacenza_minima_armadi ?? "";
@@ -473,7 +458,7 @@ export function mount(container) {
       dettagli.appendChild(el("dt", { text: etichetta }));
       dettagli.appendChild(el("dd", { text: valore }));
     };
-    coppia("Unità", `${p.unita_carico} / ${p.unita_base} (${p.pezzi_per_confezione} pz/conf.)`);
+    coppia("Pezzi per confezione", `${p.pezzi_per_confezione}`);
     coppia("Soglie (CU / armadi)", `${p.giacenza_minima_cu} / ${p.giacenza_minima_armadi}`);
     coppia("Allerta scadenza", `${p.intervallo_allerta_scadenza} giorni`);
     coppia("Scadenza", p.senza_scadenza ? "Senza scadenza" : "Con scadenza");

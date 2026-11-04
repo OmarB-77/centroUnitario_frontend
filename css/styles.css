@@ -803,7 +803,8 @@ legend {
 }
 
 .armadi-scanner,
-.scaricoCu-scanner {
+.scaricoCu-scanner,
+.prodotti-scanner {
   margin: 0.75rem 0;
   border: 1px solid var(--colore-bordo);
   border-radius: var(--raggio-sm);
@@ -971,4 +972,22 @@ legend {
   .ut-form-inner .azioni {
     grid-column: 1 / -1;
   }
+}
+
+/* -------------------------------------------------------------------------
+   Campo "Codice" con scansione barcode (gestione prodotti): l'input cresce,
+   il bottone scanner resta compatto accanto, su una sola riga.
+   ------------------------------------------------------------------------- */
+.azioni-codice {
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.azioni-codice input[type="text"] {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.azioni-codice button {
+  flex: 0 0 auto;
 }

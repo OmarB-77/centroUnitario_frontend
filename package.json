@@ -1,6 +1,6 @@
 {
   "name": "centrounitario-frontend",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "Webapp PWA per la gestione del Centro Unitario e degli Armadi di Ripristino",
   "type": "module",
   "private": true,

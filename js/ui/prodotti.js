@@ -35,6 +35,12 @@ import {
 } from "../api/prodotti.js";
 import { listaPuntiDiPrelievo } from "../api/puntiPrelievo.js";
 import {
+  avviaScansione,
+  fermaScansione,
+  scansioneAttiva,
+  ScannerError,
+} from "../scanner.js";
+import {
   validaNome,
   validaCodice,
   validaPezziPerConfezione,
@@ -104,7 +110,11 @@ export function mount(container) {
     prodotti: [],
     puntiPrelievo: [],
     inModifica: null, // id del prodotto in modifica, null = creazione
+    scannerOn: false, // scansione barcode del codice attiva
   };
+
+  // Id del contenitore DOM usato dallo scanner live per il campo codice.
+  const ID_SCANNER_CODICE = "prodotti-scanner-codice";
 
   const radice = el("section", { class: "prodotti", attrs: { "aria-label": "Gestione prodotti" } });
 
@@ -208,11 +218,51 @@ export function mount(container) {
 
   const legenda = el("legend", { text: "Nuovo prodotto" });
 
+  // Campo codice con opzione di scansione barcode live dalla fotocamera.
+  // L'input resta modificabile a mano (fallback); il bottone 📷 avvia/ferma lo
+  // scanner, che a lettura valida riempie il campo e si spegne.
+  const inputCodice = inputTesto("codice", { maxlength: "50", required: "required" });
+  const btnScannerCodice = el("button", {
+    class: "btn-secondario btn-icona",
+    attrs: {
+      type: "button",
+      "aria-label": "Scansiona il codice con la fotocamera",
+      title: "Scansiona codice",
+    },
+    text: "📷",
+  });
+  const scannerBoxCodice = el("div", {
+    class: "prodotti-scanner",
+    attrs: { id: ID_SCANNER_CODICE },
+  });
+  scannerBoxCodice.hidden = true;
+
+  // Gruppo codice: etichetta + (input affiancato al bottone scanner) + box
+  // stream + messaggio d'errore inline. Riusa lo stile .campo e .azioni.
+  const errCodiceId = "p-codice-errore";
+  inputCodice.setAttribute("id", "p-codice");
+  inputCodice.setAttribute("aria-describedby", errCodiceId);
+  const errCodice = el("p", {
+    class: "campo-errore",
+    attrs: { id: errCodiceId, role: "alert" },
+  });
+  errCodice.hidden = true;
+  erroriInline["p-codice"] = errCodice;
+  const gruppoCodice = el("div", {
+    class: "campo",
+    children: [
+      el("label", { text: "Codice *", attrs: { for: "p-codice" } }),
+      el("div", { class: "azioni azioni-codice", children: [inputCodice, btnScannerCodice] }),
+      scannerBoxCodice,
+      errCodice,
+    ],
+  });
+
   const campiBase = el("div", {
     class: "prodotti-campi",
     children: [
       gruppoCampo("p-nome", "Nome *", inputTesto("nome", { maxlength: "200", required: "required" })),
-      gruppoCampo("p-codice", "Codice *", inputTesto("codice", { maxlength: "50", required: "required" })),
+      gruppoCodice,
     ],
   });
 
@@ -279,6 +329,58 @@ export function mount(container) {
   form.appendChild(fieldset);
   form.addEventListener("submit", onSubmit);
   contenitoreForm.appendChild(form);
+
+  // ---- Scanner barcode del campo codice ---------------------------------
+
+  /** Ferma lo scanner (se attivo) e ripristina il bottone/box. Best-effort. */
+  async function fermaScannerCodice() {
+    try {
+      await fermaScansione();
+    } catch {
+      /* no-op: lo stop è best-effort */
+    }
+    stato.scannerOn = false;
+    scannerBoxCodice.hidden = true;
+    btnScannerCodice.textContent = "📷";
+    btnScannerCodice.setAttribute("aria-label", "Scansiona il codice con la fotocamera");
+    btnScannerCodice.title = "Scansiona codice";
+  }
+
+  /** Avvia/ferma la scansione live del codice con lo stesso bottone. */
+  async function toggleScannerCodice() {
+    if (stato.scannerOn || scansioneAttiva()) {
+      await fermaScannerCodice();
+      return;
+    }
+    scannerBoxCodice.hidden = false;
+    btnScannerCodice.textContent = "⏹";
+    btnScannerCodice.setAttribute("aria-label", "Ferma la scansione");
+    btnScannerCodice.title = "Ferma scansione";
+    try {
+      await avviaScansione(ID_SCANNER_CODICE, {
+        onRisultato: (testo) => {
+          // Lettura valida: riempiamo il campo codice e spegniamo lo scanner.
+          controlli.codice.value = testo;
+          erroriInline["p-codice"].hidden = true;
+          svuota(erroriInline["p-codice"]);
+          controlli.codice.removeAttribute("aria-invalid");
+          fermaScannerCodice();
+        },
+      });
+      stato.scannerOn = true;
+    } catch (err) {
+      await fermaScannerCodice();
+      const msg =
+        err instanceof ScannerError
+          ? err.message
+          : "Scanner non disponibile. Inserisci il codice manualmente.";
+      mostraBanner(msg, "errore");
+    }
+  }
+
+  btnScannerCodice.addEventListener("click", () => {
+    toggleScannerCodice();
+  });
 
   /** Pulisce tutti gli errori inline. */
   function pulisciErroriInline() {
@@ -548,6 +650,8 @@ export function mount(container) {
 
   return {
     destroy() {
+      // Ferma lo scanner se attivo (stop camera all'unmount).
+      fermaScannerCodice();
       form.removeEventListener("submit", onSubmit);
       svuota(container);
     },

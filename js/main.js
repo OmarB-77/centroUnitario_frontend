@@ -134,9 +134,10 @@ function registraRotte() {
   registraRotta(SCHERMATE.SCARICO_CU, conCleanup((c) => montaScaricoCu(c)));
 
   // Armadi di ripristino (tutti gli utenti): stesso modulo per entrambe le
-  // rotte; il modulo mostra la modalità adeguata tramite tab interne.
-  registraRotta(SCHERMATE.SCARICO_ARMADI, conCleanup((c) => montaArmadi(c)));
-  registraRotta(SCHERMATE.SEGNALAZIONE_ARMADI, conCleanup((c) => montaArmadi(c)));
+  // rotte, ma con la modalità iniziale decisa dalla rotta che lo apre, così le
+  // due voci di menu mostrano schermate diverse (prelievo vs segnalazione).
+  registraRotta(SCHERMATE.SCARICO_ARMADI, conCleanup((c) => montaArmadi(c, { modalita: "prelievo" })));
+  registraRotta(SCHERMATE.SEGNALAZIONE_ARMADI, conCleanup((c) => montaArmadi(c, { modalita: "segnalazione" })));
 
   // Check-list operative (Admin/Power-user).
   registraRotta(SCHERMATE.CHECK_LIST, conCleanup((c) => montaCheckList(c)));

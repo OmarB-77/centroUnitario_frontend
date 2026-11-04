@@ -65,16 +65,23 @@ const ID_SCANNER_PREL = "armadi-scanner-prelievo";
  * @param {HTMLElement} container elemento in cui montare la UI
  * @returns {() => void} funzione di unmount (ferma lo scanner e svuota il DOM)
  */
-export function mount(container) {
+export function mount(container, opzioni = {}) {
   if (!container || typeof container.appendChild !== "function") {
     throw new Error("Contenitore non valido per la schermata armadi.");
   }
   svuota(container);
 
+  // Modalità iniziale decisa dalla rotta che apre la schermata (main.js):
+  //   - "prelievo"     → voce "Scarico/Prelievo dagli armadi";
+  //   - "segnalazione" → voce "Segnala carenza".
+  // Default prudente: segnalazione, se non specificata o non valida.
+  const modalitaIniziale =
+    opzioni && opzioni.modalita === "prelievo" ? "prelievo" : "segnalazione";
+
   // Stato locale della schermata.
   const stato = {
     prodotti: /** @type {any[]} */ ([]), // anagrafica attiva (per lookup codice)
-    modalita: /** @type {"segnalazione"|"prelievo"} */ ("segnalazione"),
+    modalita: /** @type {"segnalazione"|"prelievo"} */ (modalitaIniziale),
     // Prodotto selezionato per ciascun flusso (indipendenti tra loro).
     prodottoSegnalazione: /** @type {any|null} */ (null),
     prodottoPrelievo: /** @type {any|null} */ (null),
@@ -586,6 +593,9 @@ export function mount(container) {
     tabPrelievo.setAttribute("aria-selected", isSegn ? "false" : "true");
     tabSegnalazione.classList.toggle("armadi-tab--attiva", isSegn);
     tabPrelievo.classList.toggle("armadi-tab--attiva", !isSegn);
+    titolo.textContent = isSegn
+      ? "Armadi di ripristino — Segnala carenza"
+      : "Armadi di ripristino — Prelievo";
     mostraMessaggio(messaggi, "", "info");
   }
 
@@ -615,8 +625,21 @@ export function mount(container) {
   segnBtnScanner.addEventListener("click", () => toggleScanner("segnalazione"));
   prelBtnScanner.addEventListener("click", () => toggleScanner("prelievo"));
 
-  // Stato iniziale: tab segnalazione attiva.
-  tabSegnalazione.classList.add("armadi-tab--attiva");
+  // Stato iniziale: applica la modalità decisa dalla rotta (prelievo o
+  // segnalazione) a tab e pannelli, senza il guard "no-op" di cambiaModalita
+  // (che salterebbe l'inizializzazione quando la modalità coincide col default).
+  (function applicaModalitaIniziale() {
+    const isSegn = stato.modalita === "segnalazione";
+    pannelloSegnalazione.hidden = !isSegn;
+    pannelloPrelievo.hidden = isSegn;
+    tabSegnalazione.setAttribute("aria-selected", isSegn ? "true" : "false");
+    tabPrelievo.setAttribute("aria-selected", isSegn ? "false" : "true");
+    tabSegnalazione.classList.toggle("armadi-tab--attiva", isSegn);
+    tabPrelievo.classList.toggle("armadi-tab--attiva", !isSegn);
+    titolo.textContent = isSegn
+      ? "Armadi di ripristino — Segnala carenza"
+      : "Armadi di ripristino — Prelievo";
+  })();
 
   // ---- Caricamento anagrafica ---------------------------------------------
 

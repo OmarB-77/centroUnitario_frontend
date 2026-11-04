@@ -28,6 +28,7 @@
 //   Il ruolo sul DB usa i valori enum 'admin' | 'power_user' | 'user'.
 
 import { supabase } from "../supabaseClient.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from "../config.js";
 import { ok, errore, mappaErroreDb } from "./_errori.js";
 
 const TABELLA_USERS = "users";
@@ -79,27 +80,6 @@ function messaggioPerStatus(status, messaggioServer) {
 }
 
 /**
- * Prova a leggere il corpo JSON di una Response (usata per gli errori HTTP
- * della Edge Function, dove supabase-js espone la Response in error.context).
- * @param {Response|undefined|null} response
- * @returns {Promise<{ status: number, corpo: * }>}
- */
-async function leggiResponse(response) {
-  if (!response || typeof response.status !== "number") {
-    return { status: 0, corpo: null };
-  }
-  let corpo = null;
-  try {
-    // clone() per non consumare lo stream se già letto altrove.
-    const r = typeof response.clone === "function" ? response.clone() : response;
-    corpo = await r.json();
-  } catch {
-    corpo = null;
-  }
-  return { status: response.status, corpo };
-}
-
-/**
  * Invoca la Edge Function `gestione-utenti` normalizzando l'esito in
  * { ok, data?/error?, code? }. supabase-js restituisce { data, error }:
  *   - successo: data = corpo JSON (la function risponde 2xx con { ok, ... });
@@ -110,67 +90,77 @@ async function leggiResponse(response) {
  */
 async function invocaGestioneUtenti(body) {
   try {
-    // Assicura un access token valido PRIMA di invocare la Edge Function.
-    // Su PWA/mobile la tab può restare sospesa a lungo: il refresh proattivo
-    // schedulato da supabase-js può non essere ancora scattato al ritorno in
-    // primo piano, e invoke allegherebbe un token scaduto (la function
-    // risponderebbe 401 "token scaduto o non valido"). getSession() rinnova il
-    // token se è prossimo alla scadenza; passiamo poi il token fresco in modo
-    // esplicito nell'header Authorization dell'invoke.
+    // Ottiene un access token FRESCO prima della chiamata. Rinnovare sempre la
+    // sessione (quando presente) è l'unico modo affidabile per avere un token
+    // appena firmato: su PWA/mobile il timer di auto-refresh di supabase-js può
+    // non essere scattato dopo una sospensione della tab, e il token in cache
+    // sarebbe scaduto (la Edge Function risponderebbe 401 "token scaduto").
     let tokenFresco = null;
     try {
-      const { data: sess } = await supabase.auth.getSession();
-      let sessione = sess?.session ?? null;
-
-      // Se il token è scaduto (o scade entro 60s) forziamo un refresh esplicito,
-      // perché getSession non sempre rinnova proattivamente dopo una lunga
-      // sospensione della tab.
-      const scadenza = sessione?.expires_at ?? 0; // secondi epoch
-      const traScadenza = scadenza - Math.floor(Date.now() / 1000);
-      if (sessione && traScadenza < 60) {
-        const { data: refreshed } = await supabase.auth.refreshSession();
-        if (refreshed?.session) sessione = refreshed.session;
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      if (refreshed?.session?.access_token) {
+        tokenFresco = refreshed.session.access_token;
+      } else {
+        // Nessun refresh (es. refresh token assente): ripiego sulla sessione
+        // corrente, se c'è.
+        const { data: sess } = await supabase.auth.getSession();
+        tokenFresco = sess?.session?.access_token ?? null;
       }
-
-      tokenFresco = sessione?.access_token ?? null;
     } catch {
       tokenFresco = null;
     }
 
-    const opzioniInvoke = { body };
-    if (tokenFresco) {
-      opzioniInvoke.headers = { Authorization: `Bearer ${tokenFresco}` };
-    }
-
-    const { data, error } = await supabase.functions.invoke(
-      NOME_FUNZIONE,
-      opzioniInvoke,
-    );
-
-    if (error) {
-      // FunctionsHttpError espone la Response originale in `context`.
-      const { status, corpo } = await leggiResponse(error.context);
-      const messaggioServer = messaggioDaCorpo(corpo);
-      if (status > 0) {
-        return errore(messaggioPerStatus(status, messaggioServer), {
-          code: String(status),
-        });
-      }
-      // Errore di rete / relay (FunctionsFetchError/FunctionsRelayError): non
-      // c'è una Response HTTP interpretabile.
+    if (!tokenFresco) {
+      // Nessuna sessione valida: inutile chiamare, l'esito sarebbe 401.
       return errore(
-        "Impossibile contattare il servizio di gestione utenti.",
+        "Sessione scaduta o non valida: effettua di nuovo l'accesso.",
+        { code: "401" },
       );
     }
 
-    // Alcune function restituiscono { error } anche con status 2xx: trattalo
-    // comunque come errore applicativo.
-    const messaggioApplicativo = messaggioDaCorpo(data);
+    // Chiamata diretta all'endpoint della Edge Function via fetch, così
+    // controlliamo ESATTAMENTE gli header (Authorization con il token fresco +
+    // apikey). Questo evita qualsiasi problema di stato interno/caching del
+    // token da parte di supabase.functions.invoke, che si è rivelato la causa
+    // dei 401 ricorrenti nel browser pur avendo una sessione valida.
+    const url = `${SUPABASE_URL}/functions/v1/${NOME_FUNZIONE}`;
+    let response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: SUPABASE_ANON_KEY,
+          Authorization: `Bearer ${tokenFresco}`,
+        },
+        body: JSON.stringify(body),
+      });
+    } catch {
+      return errore("Impossibile contattare il servizio di gestione utenti.");
+    }
+
+    // Prova a leggere il corpo JSON (sia per successo sia per errore).
+    let corpo = null;
+    try {
+      corpo = await response.json();
+    } catch {
+      corpo = null;
+    }
+
+    if (!response.ok) {
+      const messaggioServer = messaggioDaCorpo(corpo);
+      return errore(messaggioPerStatus(response.status, messaggioServer), {
+        code: String(response.status),
+      });
+    }
+
+    // Alcune risposte 2xx potrebbero comunque contenere { error }.
+    const messaggioApplicativo = messaggioDaCorpo(corpo);
     if (messaggioApplicativo) {
       return errore(messaggioApplicativo);
     }
 
-    return ok(data);
+    return ok(corpo);
   } catch (e) {
     return errore("Impossibile eseguire l'operazione sugli utenti.");
   }

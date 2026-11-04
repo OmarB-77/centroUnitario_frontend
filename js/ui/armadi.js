@@ -230,7 +230,7 @@ export function mount(container) {
   });
   const prelLabelQta = el("label", {
     htmlFor: "armadi-prel-qta",
-    text: "Quantità da prelevare (unità base)",
+    text: "Quantità da prelevare (pezzi)",
   });
   // Giacenza armadi attuale mostrata accanto alla quantità (R9.7).
   const prelGiacenza = el("span", {
@@ -284,7 +284,7 @@ export function mount(container) {
     [
       el("p", {
         class: "armadi-descrizione",
-        text: "Registra un prelievo dagli armadi di ripristino indicando il prodotto e la quantità in unità base.",
+        text: "Registra un prelievo dagli armadi di ripristino indicando il prodotto e la quantità in pezzi.",
       }),
       formPrelievo,
     ],

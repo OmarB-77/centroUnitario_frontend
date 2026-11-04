@@ -11,9 +11,11 @@
 //      per ogni lotto si mostra lotto + data_scadenza_effettiva + giacenza
 //      residua; sono presentati SOLO i lotti con giacenza > 0 (R8.1). Se non
 //      esistono lotti con giacenza si mostra "assenza di giacenza" (R8.9).
-//   3. Quantità in UNITÀ BASE (R8.2/R8.4): intero >= 1 validato lato client e
-//      limitato alla giacenza residua del lotto scelto (guardia UX; la difesa
-//      reale è il trigger anti-negativa del DB).
+//   3. Quantità con scelta esplicita dell'unità "Pezzi"/"Confezioni" (come al
+//      carico, R7.11): le Confezioni vengono convertite in pezzi via
+//      pezzi_per_confezione. La quantità in pezzi è limitata alla giacenza
+//      residua del lotto scelto (guardia UX; la difesa reale è il trigger
+//      anti-negativa del DB).
 //   4. Destinazione TRIPLA tramite radio (R8.2): 'armadio_ripristino' |
 //      'associazione' | 'altro'. Dettaglio condizionato (R8.10/R8.11/R8.12):
 //        - associazione → select OBBLIGATORIA dall'Anagrafica_Associazioni;
@@ -50,6 +52,7 @@ import { lottiDisponibili } from "../api/giacenze.js";
 import { scaricoCu } from "../api/movimentiCu.js";
 import { lookupPerCodice } from "../domain/scanner_lookup.js";
 import { validaQuantita, validaDestinazione } from "../domain/validation.js";
+import { quantitaInBase, UNITA_BASE, UNITA_CARICO } from "../domain/units.js";
 import {
   avviaScansione,
   fermaScansione,
@@ -107,7 +110,7 @@ function descriviLotto(l) {
   const scad = l.data_scadenza_effettiva
     ? `scad. ${l.data_scadenza_effettiva}`
     : "senza scadenza";
-  return `${nomeLotto} — ${scad} — giacenza ${l.giacenza}`;
+  return `${nomeLotto} — ${scad} — ${l.giacenza} pezzi disponibili`;
 }
 
 /**
@@ -199,7 +202,24 @@ export function mount(container) {
     infoLotto,
   ]);
 
-  // --- Sezione 3: quantità ---
+  // --- Sezione 3: quantità (con scelta unità Pezzi/Confezioni) ---
+  // Come al carico (R7.11), l'operatore sceglie se la quantità è in Pezzi o in
+  // Confezioni; le Confezioni sono convertite in pezzi via pezzi_per_confezione
+  // prima dell'invio. Nessun default preselezionato.
+  const selUnitaScarico = el("select", {
+    id: "scaricoCu-unita",
+    name: "unita",
+    disabled: true,
+  }, [
+    el("option", { value: "", text: "— seleziona unità —", disabled: true, selected: true }),
+    el("option", { value: UNITA_BASE, text: "Pezzi" }),
+    el("option", { value: UNITA_CARICO, text: "Confezioni" }),
+  ]);
+  const labelUnita = el("label", {
+    htmlFor: "scaricoCu-unita",
+    text: "Unità",
+  });
+
   const inputQta = el("input", {
     type: "number",
     id: "scaricoCu-qta",
@@ -211,13 +231,19 @@ export function mount(container) {
   });
   const labelQta = el("label", {
     htmlFor: "scaricoCu-qta",
-    text: "Quantità (unità base)",
+    text: "Quantità",
   });
+
+  // Anteprima della quantità risultante in pezzi quando si scelgono Confezioni.
+  const anteprimaQta = el("p", { class: "scaricoCu-anteprima", "aria-live": "polite" });
 
   const sezioneQta = el("fieldset", {}, [
     el("legend", { text: "3. Quantità" }),
+    labelUnita,
+    selUnitaScarico,
     labelQta,
     inputQta,
+    anteprimaQta,
   ]);
 
   // --- Sezione 4: destinazione (radio) + dettaglio condizionato ---
@@ -305,8 +331,9 @@ export function mount(container) {
   function aggiornaInvio() {
     const haProdotto = !!stato.prodottoSelezionato;
     const haLotto = !!stato.lottoSelezionato;
+    const haUnita = selUnitaScarico.value === UNITA_BASE || selUnitaScarico.value === UNITA_CARICO;
     const dest = destinazioneSelezionata();
-    btnInvia.disabled = !(haProdotto && haLotto && !!dest);
+    btnInvia.disabled = !(haProdotto && haLotto && haUnita && !!dest);
   }
 
   /** @returns {string|null} valore della destinazione radio selezionata. */
@@ -326,8 +353,38 @@ export function mount(container) {
     inputQta.value = "";
     inputQta.disabled = true;
     inputQta.removeAttribute("max");
+    selUnitaScarico.value = "";
+    selUnitaScarico.disabled = true;
+    anteprimaQta.textContent = "";
     infoLotto.textContent = "";
     aggiornaInvio();
+  }
+
+  /**
+   * Calcola la quantità in pezzi (unità base) a partire da ciò che l'operatore
+   * ha inserito e dall'unità scelta. Confezioni → quantità * pezzi_per_confezione;
+   * Pezzi → invariata. Ritorna NaN se input/unità non validi.
+   * @returns {number}
+   */
+  function quantitaInPezzi() {
+    const q = Number(inputQta.value);
+    const unita = selUnitaScarico.value;
+    if (!Number.isInteger(q) || q < 1 || (unita !== UNITA_BASE && unita !== UNITA_CARICO)) {
+      return NaN;
+    }
+    const ppc = Number(stato.prodottoSelezionato?.pezzi_per_confezione) || 1;
+    return quantitaInBase(q, unita, ppc);
+  }
+
+  /** Aggiorna l'anteprima "= N pezzi" quando si scelgono le Confezioni. */
+  function aggiornaAnteprima() {
+    const unita = selUnitaScarico.value;
+    const pezzi = quantitaInPezzi();
+    if (unita === UNITA_CARICO && Number.isFinite(pezzi)) {
+      anteprimaQta.textContent = `= ${pezzi} pezzi`;
+    } else {
+      anteprimaQta.textContent = "";
+    }
   }
 
   /** Popola la select dei lotti disponibili (solo giacenza > 0). */
@@ -498,9 +555,22 @@ export function mount(container) {
     const lotto = stato.lotti[idx];
     stato.lottoSelezionato = lotto;
     inputQta.disabled = false;
+    selUnitaScarico.disabled = false;
+    // Il max nativo è in pezzi: vale solo quando l'unità scelta è "Pezzi".
+    // La guardia reale sulla giacenza (in pezzi) è nel submit.
     inputQta.max = String(lotto.giacenza);
-    infoLotto.textContent = `Giacenza residua del lotto: ${lotto.giacenza}`;
+    infoLotto.textContent = `Giacenza residua del lotto: ${lotto.giacenza} pezzi`;
+    aggiornaAnteprima();
     aggiornaInvio();
+  });
+
+  // Aggiorna anteprima e stato invio al cambio di unità o quantità.
+  selUnitaScarico.addEventListener("change", () => {
+    aggiornaAnteprima();
+    aggiornaInvio();
+  });
+  inputQta.addEventListener("input", () => {
+    aggiornaAnteprima();
   });
 
   // Destinazione: mostra/nasconde il dettaglio coerente.
@@ -529,16 +599,39 @@ export function mount(container) {
       return;
     }
 
-    const quantita = Number(inputQta.value);
-    const vQta = validaQuantita(Number.isInteger(quantita) ? quantita : inputQta.value);
+    // L'unità di inserimento è obbligatoria (nessun default), come al carico.
+    const unita = selUnitaScarico.value;
+    if (unita !== UNITA_BASE && unita !== UNITA_CARICO) {
+      mostraMessaggio("Scegli se la quantità è in Pezzi o in Confezioni.", "errore");
+      return;
+    }
+
+    // La quantità inserita è validata come intero >= 1 nell'unità scelta...
+    const quantitaInserita = Number(inputQta.value);
+    const vQta = validaQuantita(
+      Number.isInteger(quantitaInserita) ? quantitaInserita : inputQta.value,
+    );
     if (!vQta.ok) {
       mostraMessaggio(vQta.errors[0], "errore");
       return;
     }
-    // Guardia client sulla giacenza del lotto (la difesa reale è il DB).
+
+    // ...poi convertita in pezzi (unità base) per la guardia e per l'invio.
+    const quantita = quantitaInPezzi();
+    if (!Number.isFinite(quantita)) {
+      mostraMessaggio("Quantità non valida.", "errore");
+      return;
+    }
+
+    // Guardia client sulla giacenza del lotto, in pezzi (difesa reale: il DB).
     if (quantita > stato.lottoSelezionato.giacenza) {
+      const q = quantitaInserita;
+      const dettaglio =
+        unita === UNITA_CARICO
+          ? `${q} confezioni = ${quantita} pezzi, ma `
+          : "";
       mostraMessaggio(
-        `La quantità supera la giacenza residua del lotto (${stato.lottoSelezionato.giacenza}).`,
+        `La quantità supera la giacenza residua del lotto: ${dettaglio}disponibili ${stato.lottoSelezionato.giacenza} pezzi.`,
         "errore",
       );
       return;

@@ -322,7 +322,7 @@ export function mount(container) {
     }
     try {
       const base = quantitaInBase(q, unita, Number(prodottoSelezionato.pezzi_per_confezione));
-      anteprima.textContent = `Quantità in unità base: ${base}`;
+      anteprima.textContent = `= ${base} pezzi`;
     } catch {
       anteprima.textContent = "";
     }
